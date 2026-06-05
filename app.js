@@ -464,11 +464,11 @@ function renderMCharts(){
   const metaMes=ms.map(m=>d.filter(r=>r.mes===m).reduce((s,r)=>s+r.meta,0));
   dc('mCMensal');
   CH['mCMensal']=new Chart(g('mCMensal'),{data:{labels:ms,datasets:[
-    {type:'bar',label:'1ª Quinzena',data:q1Mes,backgroundColor:'rgba(108,99,255,.85)',borderColor:'#6C63FF',borderWidth:1,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},stack:'ent',yAxisID:'y'},
-    {type:'bar',label:'2ª Quinzena',data:q2Mes,backgroundColor:'rgba(127,119,221,.6)',borderColor:'#7F77DD',borderWidth:1,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},stack:'ent',yAxisID:'y'},
+    {type:'bar',label:'1ª Quinzena',data:q1Mes,backgroundColor:'rgba(108,99,255,.85)',borderColor:'#6C63FF',borderWidth:1,borderRadius:4,yAxisID:'y'},
+    {type:'bar',label:'2ª Quinzena',data:q2Mes,backgroundColor:'rgba(127,119,221,.6)',borderColor:'#7F77DD',borderWidth:1,borderRadius:4,yAxisID:'y'},
     {type:'line',label:'Meta',data:metaMes,borderColor:'#BA7517',borderDash:[5,3],pointBackgroundColor:'#BA7517',pointRadius:4,tension:.3,fill:false,yAxisID:'y'}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:true,labels:{color:legC(),boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR'),footer:items=>{const tot=items.filter(i=>i.dataset.stack==='ent').reduce((s,i)=>s+i.raw,0);return tot>0?'Total: '+tot.toLocaleString('pt-BR'):'';}}}},
+    plugins:{legend:{display:true,labels:{color:legC(),boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR')}}},
     scales:mkScales(),
     onClick:(_,el)=>{if(!el.length)return;const mes=ms[el[0].index];const rows=d.filter(r=>r.mes===mes);openModalRows('📅 '+mes+' — Mensal',mTheads,rows.map(mRow),[{l:'Registros',v:rows.length},{l:'1ª Quin',v:rows.reduce((s,r)=>s+r.quin1,0)},{l:'2ª Quin',v:rows.reduce((s,r)=>s+r.quin2,0)},{l:'Meta',v:rows.reduce((s,r)=>s+r.meta,0)}]);}}});
   const mMap={};d.forEach(r=>{if(r.motorista)mMap[r.motorista]=(mMap[r.motorista]||0)+r.quin1+r.quin2;});
@@ -505,11 +505,11 @@ function renderDCharts(){
   const picMes=ms.map(m=>d.filter(r=>r.mes===m).reduce((s,r)=>s+r.picos,0));
   dc('dCMensal');
   CH['dCMensal']=new Chart(g('dCMensal'),{data:{labels:ms,datasets:[
-    {type:'bar',label:'1ª Quinzena',data:q1Mes,backgroundColor:'rgba(108,99,255,.85)',borderColor:'#6C63FF',borderWidth:1,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},stack:'discos',yAxisID:'y'},
-    {type:'bar',label:'2ª Quinzena',data:q2Mes,backgroundColor:'rgba(127,119,221,.6)',borderColor:'#7F77DD',borderWidth:1,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},stack:'discos',yAxisID:'y'},
+    {type:'bar',label:'1ª Quinzena',data:q1Mes,backgroundColor:'rgba(108,99,255,.85)',borderColor:'#6C63FF',borderWidth:1,borderRadius:4,yAxisID:'y'},
+    {type:'bar',label:'2ª Quinzena',data:q2Mes,backgroundColor:'rgba(127,119,221,.6)',borderColor:'#7F77DD',borderWidth:1,borderRadius:4,yAxisID:'y'},
     {type:'line',label:'Picos',data:picMes,borderColor:'#E24B4A',backgroundColor:'rgba(226,75,74,.07)',pointBackgroundColor:'#E24B4A',pointRadius:4,tension:.3,fill:true,yAxisID:'y2'}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:true,labels:{color:legC(),boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR'),footer:items=>{const tot=items.filter(i=>i.dataset.stack==='discos').reduce((s,i)=>s+i.raw,0);return tot>0?'Total: '+tot.toLocaleString('pt-BR'):'';}}}},
+    plugins:{legend:{display:true,labels:{color:legC(),boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR')}}},
     scales:mkScales(true),
     onClick:(_,el)=>{if(!el.length)return;const mes=ms[el[0].index];const rows=d.filter(r=>r.mes===mes);openModalRows('📅 '+mes+' — Discos',dTheads,rows.map(dRow),[{l:'Registros',v:rows.length},{l:'1ª Quin',v:rows.filter(r=>r.quinzena===1).length},{l:'2ª Quin',v:rows.filter(r=>r.quinzena===2).length},{l:'Total picos',v:rows.reduce((s,r)=>s+r.picos,0).toLocaleString('pt-BR')}]);}}});
   const mMap={};d.forEach(r=>{if(r.motorista)mMap[r.motorista]=(mMap[r.motorista]||0)+r.picos;});
@@ -551,11 +551,11 @@ function renderVCharts(){
   const picMes=ms.map(m=>d.filter(r=>r.mes===m).reduce((s,r)=>s+r.picos,0));
   dc('vCMensal');
   CH['vCMensal']=new Chart(g('vCMensal'),{data:{labels:ms,datasets:[
-    {type:'bar',label:'1ª Quinzena',data:q1Mes,backgroundColor:'rgba(55,138,221,.85)',borderColor:'#378ADD',borderWidth:1,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},stack:'leit',yAxisID:'y'},
-    {type:'bar',label:'2ª Quinzena',data:q2Mes,backgroundColor:'rgba(133,183,235,.6)',borderColor:'#85B7EB',borderWidth:1,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},stack:'leit',yAxisID:'y'},
+    {type:'bar',label:'1ª Quinzena',data:q1Mes,backgroundColor:'rgba(55,138,221,.85)',borderColor:'#378ADD',borderWidth:1,borderRadius:4,yAxisID:'y'},
+    {type:'bar',label:'2ª Quinzena',data:q2Mes,backgroundColor:'rgba(133,183,235,.6)',borderColor:'#85B7EB',borderWidth:1,borderRadius:4,yAxisID:'y'},
     {type:'line',label:'Picos',data:picMes,borderColor:'#E24B4A',backgroundColor:'rgba(226,75,74,.07)',pointBackgroundColor:'#E24B4A',pointRadius:4,tension:.3,fill:true,yAxisID:'y2'}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:true,labels:{color:legC(),boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR'),footer:items=>{const tot=items.filter(i=>i.dataset.stack==='leit').reduce((s,i)=>s+i.raw,0);return tot>0?'Total: '+tot.toLocaleString('pt-BR'):'';}}}},
+    plugins:{legend:{display:true,labels:{color:legC(),boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString('pt-BR')}}},
     scales:mkScales(true),
     onClick:(_,el)=>{if(!el.length)return;const mes=ms[el[0].index];const rows=d.filter(r=>r.mes===mes);openModalRows('📅 '+mes+' — VDO',vTheads,rows.map(vRow),[{l:'Registros',v:rows.length},{l:'1ª Quin',v:rows.filter(r=>r.quinzena===1).length},{l:'2ª Quin',v:rows.filter(r=>r.quinzena===2).length},{l:'Total picos',v:rows.reduce((s,r)=>s+r.picos,0).toLocaleString('pt-BR')}]);}}});
   const mMap={};d.forEach(r=>{if(r.motorista)mMap[r.motorista]=(mMap[r.motorista]||0)+r.picos;});
