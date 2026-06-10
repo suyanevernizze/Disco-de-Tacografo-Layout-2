@@ -318,6 +318,7 @@ window.mFilterPend=function(quin){
 
 window.mClickKpi=function(id){
   window._mPendFilter='all';
+  if(id!=='discos') window._discFilter='all';
   mActiveKpi = mActiveKpi===id ? null : id;
   const chartsArea=g('mChartsArea');
   if(mActiveKpi){chartsArea.style.display='none';}else{chartsArea.style.display='block';}
@@ -327,6 +328,7 @@ window.mClickKpi=function(id){
 function renderMKpiDetail(d,stats){
   const dp=g('mKpiDetail');
   if(!mActiveKpi){dp.innerHTML='';return;}
+  window._mLastStats=stats; window._mLastD=d;
   const ca=g('mChartsArea'); if(ca)ca.style.display='none';
   const titles={total:'Todos os registros','pend-agr':'Pendências Agregado — base: Discos','pend-frota':'Pendências Frota — base: Leitura VDO',picos:'Ranking de picos',taxa:'Evolução da taxa de entrega',discos:'Discos entregues vs meta'};
   let body='';
@@ -454,12 +456,24 @@ function renderMKpiDetail(d,stats){
     meses.map((m,i)=>`<div class="bar-row"><span class="bar-lbl">${m}</span><div class="bar-track"><div class="bar-fill" style="width:${taxM[i]}%;background:${taxM[i]>=90?'#1D9E75':taxM[i]>=70?'#BA7517':'#E24B4A'}"></div></div><span class="bar-num" style="color:${taxM[i]>=90?'var(--grn)':taxM[i]>=70?'var(--amb)':'var(--red)'}">${taxM[i]}%</span></div>`).join('');
   }
   else if(mActiveKpi==='discos'){
+    const discFilter=window._discFilter||'all';
+    const dFilt = discFilter==='agr' ? d.filter(r=>r.contrato!=='FROTA')
+                : discFilter==='frota' ? d.filter(r=>r.contrato==='FROTA')
+                : d;
     const meses=[...new Set(d.sort((a,b)=>a.mesOrd-b.mesOrd).map(r=>r.mes))];
-    const entM=meses.map(m=>d.filter(r=>r.mes===m).reduce((s,r)=>s+r.quin1+r.quin2,0));
-    const metM=meses.map(m=>d.filter(r=>r.mes===m).reduce((s,r)=>s+r.meta,0));
+    const entM=meses.map(m=>dFilt.filter(r=>r.mes===m).reduce((s,r)=>s+r.quin1+r.quin2,0));
+    const metM=meses.map(m=>dFilt.filter(r=>r.mes===m).reduce((s,r)=>s+r.meta,0));
     const maxV=Math.max(...metM,1);
-    const deficit=stats.somaEnt-stats.somaMeta;
-    body=miniKpis([{l:'Total entregues',v:stats.somaEnt.toLocaleString('pt-BR')},{l:'Meta total',v:stats.somaMeta.toLocaleString('pt-BR')},{l:'Déficit',v:deficit>=0?'+'+deficit:String(deficit)},{l:'Média/placa',v:(stats.somaEnt/([...new Set(d.map(r=>r.placa))].length||1)).toFixed(1)}])+
+    const somaEntF=dFilt.reduce((s,r)=>s+r.quin1+r.quin2,0);
+    const somaMetaF=dFilt.reduce((s,r)=>s+r.meta,0);
+    const deficit=somaEntF-somaMetaF;
+    const btnStyle=(active,color)=>`cursor:pointer;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${active?color:'var(--bd)'};background:${active?`color-mix(in srgb,${color} 15%,transparent)`:'transparent'};color:${active?color:'var(--tx2)'};transition:all .2s`;
+    body=`<div style="display:flex;gap:8px;margin-bottom:12px">
+      <button style="${btnStyle(discFilter==='all','#6C63FF')}" onclick="window._discFilter='all';renderMKpiDetail(mensalFilt,window._mLastStats)">Todos</button>
+      <button style="${btnStyle(discFilter==='agr','#1D9E75')}" onclick="window._discFilter='agr';renderMKpiDetail(mensalFilt,window._mLastStats)">Agregado</button>
+      <button style="${btnStyle(discFilter==='frota','#378ADD')}" onclick="window._discFilter='frota';renderMKpiDetail(mensalFilt,window._mLastStats)">Frota</button>
+    </div>`+
+    miniKpis([{l:'Total entregues',v:somaEntF.toLocaleString('pt-BR')},{l:'Meta total',v:somaMetaF.toLocaleString('pt-BR')},{l:'Déficit',v:deficit>=0?'+'+deficit:String(deficit)},{l:'Média/placa',v:(somaEntF/([...new Set(dFilt.map(r=>r.placa))].length||1)).toFixed(1)}])+
     '<div class="card-title" style="margin-bottom:8px">Entregues vs meta por mês</div>'+
     meses.map((m,i)=>`<div class="bar-row"><span class="bar-lbl">${m}</span><div class="bar-track" style="position:relative"><div class="bar-fill" style="width:${Math.round(entM[i]/maxV*100)}%;background:#6C63FF;opacity:.85"></div></div><span class="bar-num">${entM[i]} / ${metM[i]}</span></div>`).join('');
   }
