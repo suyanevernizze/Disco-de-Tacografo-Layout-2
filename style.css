@@ -97,7 +97,7 @@ input[type=date]:focus{border-color:var(--acc);}
 .btn-reset:hover{background:var(--sf2);color:var(--tx);}
 
 /* ── KPI GRID ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:1.25rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:1.25rem;}
 .kpi-card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:14px 15px;cursor:pointer;transition:border-color .25s,transform .2s,box-shadow .25s;position:relative;overflow:hidden;}
 .kpi-card:hover{border-color:var(--kpi-color,var(--acc));transform:translateY(-3px);box-shadow:0 0 0 1px var(--kpi-color,var(--acc)),0 4px 20px color-mix(in srgb,var(--kpi-color,var(--acc)) 35%,transparent),0 8px 32px color-mix(in srgb,var(--kpi-color,var(--acc)) 15%,transparent);}
 .kpi-card.kpi-active{border-color:var(--kpi-color,var(--acc));background:var(--sf2);box-shadow:0 0 0 1px var(--kpi-color,var(--acc)),0 4px 24px color-mix(in srgb,var(--kpi-color,var(--acc)) 40%,transparent);}
