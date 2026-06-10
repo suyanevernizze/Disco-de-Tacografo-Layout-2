@@ -139,7 +139,10 @@ function populateFilters(){
   fillSel('vSelCon',vdoAll.map(r=>r.contrato));
 }
 
-window.applyMensal=function(){
+window.applyMensal=function(src){
+  // Mutuamente exclusivos: período prevalece; selecionar mês limpa período
+  if(src==='mes'){const el1=g('mDateIni'),el2=g('mDateFim');if(el1)el1.value='';if(el2)el2.value='';}
+  if(src==='periodo'){const el=g('mSelMes');if(el)el.value='';}
   const mes=v('mSelMes'),mot=v('mSelMot'),con=v('mSelCon'),
         sta=v('mSelStatus'),placa=v('mSelPlaca').toUpperCase(),
         dIni=v('mDateIni'),dFim=v('mDateFim');
@@ -165,7 +168,9 @@ window.applyMensal=function(){
 };
 window.resetMensal=function(){['mSelMes','mSelMot','mSelCon','mSelStatus'].forEach(i=>g(i).value='');['mSelPlaca','mTableSearch','mDateIni','mDateFim'].forEach(i=>{const el=g(i);if(el)el.value='';});mActiveKpi=null;applyMensal();};
 
-window.applyDiscos=function(){
+window.applyDiscos=function(src){
+  if(src==='mes'){const el1=g('dDateIni'),el2=g('dDateFim');if(el1)el1.value='';if(el2)el2.value='';}
+  if(src==='periodo'){const el=g('dSelMes');if(el)el.value='';}
   const mes=v('dSelMes'),mot=v('dSelMot'),con=v('dSelCon'),
         quin=v('dSelQuin'),obs=v('dSelObs'),placa=v('dSelPlaca').toUpperCase(),
         dIni=v('dDateIni'),dFim=v('dDateFim');
@@ -195,7 +200,9 @@ window.applyDiscos=function(){
 };
 window.resetDiscos=function(){['dSelMes','dSelMot','dSelCon','dSelQuin','dSelObs'].forEach(i=>g(i).value='');['dSelPlaca','dTableSearch','dDateIni','dDateFim'].forEach(i=>{const el=g(i);if(el)el.value='';});dActiveKpi=null;applyDiscos();};
 
-window.applyVdo=function(){
+window.applyVdo=function(src){
+  if(src==='mes'){const el1=g('vDateIni'),el2=g('vDateFim');if(el1)el1.value='';if(el2)el2.value='';}
+  if(src==='periodo'){const el=g('vSelMes');if(el)el.value='';}
   const mes=v('vSelMes'),mot=v('vSelMot'),con=v('vSelCon'),
         quin=v('vSelQuin'),cp=v('vSelPicos'),placa=v('vSelPlaca').toUpperCase(),
         dIni=v('vDateIni'),dFim=v('vDateFim');
@@ -275,13 +282,12 @@ function renderMKpis(){
   const pendFrotaMot=[...new Set(pendFrotaRows.map(r=>r.motorista))].length;
 
   g('mKpiGrid').innerHTML=[
-    kpiCard('total',      mActiveKpi,SVG_TRUCK, '#6C63FF','Registros',         total,                    meses+' mês(es)',                     'Detalhar tudo',      "mClickKpi('total')"),
-    kpiCard('entregue',   mActiveKpi,SVG_CHECK, '#1D9E75','Entregues',         entregues,                taxa+'% do total',                    'Ver por mês',        "mClickKpi('entregue')"),
-    kpiCard('pend-agr',   mActiveKpi,SVG_WARN,  '#E24B4A','Pendência Agregado',    pendAgrUniq+' placas',    pendAgrMot+' motoristas',             'Ver na aba Discos',  "mClickKpi('pend-agr')"),
-    kpiCard('pend-frota', mActiveKpi,SVG_WARN,  '#D4537E','Pendência Frota',       pendFrotaUniq+' placas',  pendFrotaMot+' motoristas',           'Ver na aba VDO',     "mClickKpi('pend-frota')"),
-    kpiCard('picos',      mActiveKpi,SVG_BOLT,  '#BA7517','Total picos',       somaPicos.toLocaleString('pt-BR'),'eventos acumulados',         'Ranking picos',      "mClickKpi('picos')"),
-    kpiCard('taxa',       mActiveKpi,SVG_CHART, '#378ADD','Taxa entrega',      taxa+'%',                 'meta: 100%',                         'Evolução mensal',    "mClickKpi('taxa')"),
-    kpiCard('discos',     mActiveKpi,SVG_DISC,  '#7F77DD','Discos entregues',  somaEnt.toLocaleString('pt-BR'),'meta: '+somaMeta.toLocaleString('pt-BR'),'Ver déficit',"mClickKpi('discos')"),
+    kpiCard('total',      mActiveKpi,SVG_TRUCK, '#6C63FF','Registros',          total,                                  meses+' mês(es)',                        'Detalhar tudo',     "mClickKpi('total')"),
+    kpiCard('discos',     mActiveKpi,SVG_DISC,  '#1D9E75','Discos entregues',   somaEnt.toLocaleString('pt-BR'),        'meta: '+somaMeta.toLocaleString('pt-BR'),'Ver déficit',       "mClickKpi('discos')"),
+    kpiCard('taxa',       mActiveKpi,SVG_CHART, '#378ADD','Taxa entrega',       taxa+'%',                               'meta: 100%',                            'Evolução mensal',   "mClickKpi('taxa')"),
+    kpiCard('pend-agr',   mActiveKpi,SVG_WARN,  '#E24B4A','Pendência Agregado', pendAgrUniq+' placas',                  pendAgrMot+' motoristas',                'Ver na aba Discos', "mClickKpi('pend-agr')"),
+    kpiCard('pend-frota', mActiveKpi,SVG_WARN,  '#D4537E','Pendência Frota',    pendFrotaUniq+' placas',                pendFrotaMot+' motoristas',              'Ver na aba VDO',    "mClickKpi('pend-frota')"),
+    kpiCard('picos',      mActiveKpi,SVG_BOLT,  '#BA7517','Total picos',        somaPicos.toLocaleString('pt-BR'),      'eventos acumulados',                    'Ranking picos',     "mClickKpi('picos')"),
   ].join('');
   renderMKpiDetail(d,{total,entregues,totalPend,pend1,pend2,somaPicos,somaEnt,somaMeta,taxa,meses,pendAgrRows,pendAgrUniq,pendAgrMot,pendFrotaRows,pendFrotaUniq,pendFrotaMot});
 }
@@ -322,7 +328,7 @@ function renderMKpiDetail(d,stats){
   const dp=g('mKpiDetail');
   if(!mActiveKpi){dp.innerHTML='';return;}
   const ca=g('mChartsArea'); if(ca)ca.style.display='none';
-  const titles={total:'Todos os registros',entregue:'Discos entregues por mês','pend-agr':'Pendências Agregado — base: Discos','pend-frota':'Pendências Frota — base: Leitura VDO',picos:'Ranking de picos',taxa:'Evolução da taxa de entrega',discos:'Discos entregues vs meta'};
+  const titles={total:'Todos os registros','pend-agr':'Pendências Agregado — base: Discos','pend-frota':'Pendências Frota — base: Leitura VDO',picos:'Ranking de picos',taxa:'Evolução da taxa de entrega',discos:'Discos entregues vs meta'};
   let body='';
 
   if(mActiveKpi==='total'){
@@ -331,14 +337,6 @@ function renderMKpiDetail(d,stats){
     body=miniKpis([{l:'Total',v:d.length},{l:'Motoristas',v:[...new Set(d.map(r=>r.motorista))].length},{l:'Placas',v:[...new Set(d.map(r=>r.placa))].length},{l:'Meses',v:stats.meses}])+
     '<div class="card-title" style="margin-bottom:8px">Por contrato</div>'+
     barRows(cK,k=>cMap[k],Math.max(...Object.values(cMap)),'#6C63FF');
-  }
-  else if(mActiveKpi==='entregue'){
-    const meses=[...new Set(d.sort((a,b)=>a.mesOrd-b.mesOrd).map(r=>r.mes))];
-    const entM=meses.map(m=>d.filter(r=>r.mes===m&&r.statusPend==='ENTREGUES').length);
-    const maxE=Math.max(...entM)||1;
-    body=miniKpis([{l:'Total entregues',v:stats.entregues},{l:'Taxa',v:stats.taxa+'%'},{l:'Melhor mês',v:meses[entM.indexOf(Math.max(...entM))]||'—'},{l:'Média/mês',v:Math.round(stats.entregues/stats.meses)}])+
-    '<div class="card-title" style="margin-bottom:8px">Entregues por mês</div>'+
-    meses.map((m,i)=>`<div class="bar-row"><span class="bar-lbl">${m}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(entM[i]/maxE*100)}%;background:#1D9E75"></div></div><span class="bar-num">${entM[i]}</span></div>`).join('');
   }
   else if(mActiveKpi==='pend-agr'){
     const allPendMensal=d.filter(r=>r.statusPend&&r.statusPend!=='ENTREGUES'&&r.contrato!=='FROTA');
@@ -638,7 +636,7 @@ function renderMCharts(){
   const p1=d.filter(r=>r.statusPend==='PENDÊNCIA 1ª QUIN').length;
   const p2=d.filter(r=>r.statusPend==='PENDÊNCIA 2ª QUIN').length;
   g('mLgStatus').innerHTML=['Entregues','Pend 1ª','Pend 2ª'].map((l,i)=>`<span><span class="ld" style="background:${['#1D9E75','#BA7517','#E24B4A'][i]}"></span>${l}</span>`).join('');
-  mkDonut('mCStatus',['Entregues','Pend 1ª','Pend 2ª'],[ent,p1,p2],['#1D9E75','#BA7517','#E24B4A'],idx=>{ if(idx===0)mClickKpi('entregue'); else mClickKpi('pendente'); });
+  mkDonut('mCStatus',['Entregues','Pend 1ª','Pend 2ª'],[ent,p1,p2],['#1D9E75','#BA7517','#E24B4A'],idx=>{ if(idx===0)mClickKpi('discos'); else mClickKpi('pend-agr'); });
   const cMap={};d.forEach(r=>{if(r.contrato)cMap[r.contrato]=(cMap[r.contrato]||0)+1;});
   const cK=Object.keys(cMap).sort((a,b)=>cMap[b]-cMap[a]),cC=cK.map((_,i)=>COLORS[i%COLORS.length]);
   g('mLgContrato').innerHTML=cK.map((k,i)=>`<span><span class="ld" style="background:${cC[i]}"></span>${k}</span>`).join('');
