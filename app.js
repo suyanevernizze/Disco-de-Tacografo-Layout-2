@@ -106,6 +106,7 @@ function processFile(file){
       badge.textContent='✅ '+file.name+' — '+mensalAll.length+' mensal / '+discosAll.length+' discos / '+vdoAll.length+' VDO';
       g('dropZone').classList.add('hidden');
       g('dashboard').classList.add('visible');
+      g('hdrTabs').classList.add('visible');
       populateFilters();
       applyMensal(); applyDiscos(); applyVdo();
     }catch(err){badge.textContent='❌ '+err.message;alert('Erro: '+err.message);}
@@ -205,8 +206,10 @@ function kpiCard(id,activeId,icon,color,label,val,sub,hint,onclick){
   const isActive = activeId===id;
   return `<div class="kpi-card${isActive?' kpi-active':''}" onclick="${onclick}" role="button" tabindex="0" style="--kpi-color:${color}">
     <div class="kpi-accent" style="background:${color}"></div>
-    <svg class="kpi-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${isActive?color:'currentColor'}" stroke-width="1.8">${icon}</svg>
-    <div class="kpi-label">${label}</div>
+    <div class="kpi-header">
+      <svg class="kpi-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${isActive?color:'currentColor'}" stroke-width="1.8">${icon}</svg>
+      <div class="kpi-label">${label}</div>
+    </div>
     <div class="kpi-value">${val}</div>
     <div class="kpi-sub" style="color:${color}">${sub}</div>
     <div class="kpi-hint">▸ ${hint}</div>
@@ -237,15 +240,28 @@ function renderMKpis(){
   const somaMeta=d.reduce((s,r)=>s+r.meta,0);
   const taxa=total?Math.round(entregues/total*100):0;
   const meses=[...new Set(d.map(r=>r.mes))].length;
+
+  // Pendências Agregado: cruzamento com aba Discos (motoristas/placas com pendência na aba Mensal que aparecem em discosAll)
+  const placasPendMensal=new Set(d.filter(r=>r.statusPend&&r.statusPend!=='ENTREGUES').map(r=>r.placa));
+  const pendAgr=discosAll.filter(r=>placasPendMensal.has(r.placa));
+  const pendAgrUniq=[...new Set(pendAgr.map(r=>r.placa))].length;
+  const pendAgrMot=[...new Set(pendAgr.map(r=>r.motorista))].length;
+
+  // Pendências Frota: cruzamento com aba Leitura VDO (mesmas placas pendentes)
+  const pendFrota=vdoAll.filter(r=>placasPendMensal.has(r.placa));
+  const pendFrotaUniq=[...new Set(pendFrota.map(r=>r.placa))].length;
+  const pendFrotaMot=[...new Set(pendFrota.map(r=>r.motorista))].length;
+
   g('mKpiGrid').innerHTML=[
-    kpiCard('total',   mActiveKpi,SVG_TRUCK, '#6C63FF','Registros',  total,         meses+' mês(es)',         'Detalhar tudo',     "mClickKpi('total')"),
-    kpiCard('entregue',mActiveKpi,SVG_CHECK, '#1D9E75','Entregues',  entregues,     taxa+'% do total',        'Ver por mês',       "mClickKpi('entregue')"),
-    kpiCard('pendente',mActiveKpi,SVG_WARN,  '#E24B4A','Pendências', totalPend,     pend1+'× 1ª · '+pend2+'× 2ª','Ver motoristas', "mClickKpi('pendente')"),
-    kpiCard('picos',   mActiveKpi,SVG_BOLT,  '#BA7517','Total picos',somaPicos.toLocaleString('pt-BR'),'eventos acumulados','Ranking picos',    "mClickKpi('picos')"),
-    kpiCard('taxa',    mActiveKpi,SVG_CHART, '#378ADD','Taxa entrega',taxa+'%',     'meta: 100%',             'Evolução mensal',   "mClickKpi('taxa')"),
-    kpiCard('discos',  mActiveKpi,SVG_DISC,  '#7F77DD','Discos entregues',somaEnt.toLocaleString('pt-BR'), 'meta: '+somaMeta.toLocaleString('pt-BR'),'Ver déficit', "mClickKpi('discos')"),
+    kpiCard('total',      mActiveKpi,SVG_TRUCK, '#6C63FF','Registros',         total,                    meses+' mês(es)',                     'Detalhar tudo',      "mClickKpi('total')"),
+    kpiCard('entregue',   mActiveKpi,SVG_CHECK, '#1D9E75','Entregues',         entregues,                taxa+'% do total',                    'Ver por mês',        "mClickKpi('entregue')"),
+    kpiCard('pend-agr',   mActiveKpi,SVG_WARN,  '#E24B4A','Pend. Agregado',    pendAgrUniq+' placas',    pendAgrMot+' motoristas',             'Ver na aba Discos',  "mClickKpi('pend-agr')"),
+    kpiCard('pend-frota', mActiveKpi,SVG_WARN,  '#D4537E','Pend. Frota',       pendFrotaUniq+' placas',  pendFrotaMot+' motoristas',           'Ver na aba VDO',     "mClickKpi('pend-frota')"),
+    kpiCard('picos',      mActiveKpi,SVG_BOLT,  '#BA7517','Total picos',       somaPicos.toLocaleString('pt-BR'),'eventos acumulados',         'Ranking picos',      "mClickKpi('picos')"),
+    kpiCard('taxa',       mActiveKpi,SVG_CHART, '#378ADD','Taxa entrega',      taxa+'%',                 'meta: 100%',                         'Evolução mensal',    "mClickKpi('taxa')"),
+    kpiCard('discos',     mActiveKpi,SVG_DISC,  '#7F77DD','Discos entregues',  somaEnt.toLocaleString('pt-BR'),'meta: '+somaMeta.toLocaleString('pt-BR'),'Ver déficit',"mClickKpi('discos')"),
   ].join('');
-  renderMKpiDetail(d,{total,entregues,totalPend,pend1,pend2,somaPicos,somaEnt,somaMeta,taxa,meses});
+  renderMKpiDetail(d,{total,entregues,totalPend,pend1,pend2,somaPicos,somaEnt,somaMeta,taxa,meses,pendAgr,pendAgrUniq,pendAgrMot,pendFrota,pendFrotaUniq,pendFrotaMot,placasPendMensal});
 }
 
 window.mFilterPend=function(quin){
@@ -262,7 +278,14 @@ window.mFilterPend=function(quin){
     const somaMeta=d.reduce((s,r)=>s+r.meta,0);
     const taxa=total?Math.round(entregues/total*100):0;
     const meses=[...new Set(d.map(r=>r.mes))].length;
-    return {total,entregues,totalPend,pend1,pend2,somaPicos,somaEnt,somaMeta,taxa,meses};
+    const placasPendMensal=new Set(d.filter(r=>r.statusPend&&r.statusPend!=='ENTREGUES').map(r=>r.placa));
+    const pendAgr=discosAll.filter(r=>placasPendMensal.has(r.placa));
+    const pendAgrUniq=[...new Set(pendAgr.map(r=>r.placa))].length;
+    const pendAgrMot=[...new Set(pendAgr.map(r=>r.motorista))].length;
+    const pendFrota=vdoAll.filter(r=>placasPendMensal.has(r.placa));
+    const pendFrotaUniq=[...new Set(pendFrota.map(r=>r.placa))].length;
+    const pendFrotaMot=[...new Set(pendFrota.map(r=>r.motorista))].length;
+    return {total,entregues,totalPend,pend1,pend2,somaPicos,somaEnt,somaMeta,taxa,meses,pendAgr,pendAgrUniq,pendAgrMot,pendFrota,pendFrotaUniq,pendFrotaMot,placasPendMensal};
   })());
 };
 
@@ -278,7 +301,7 @@ function renderMKpiDetail(d,stats){
   const dp=g('mKpiDetail');
   if(!mActiveKpi){dp.innerHTML='';return;}
   const ca=g('mChartsArea'); if(ca)ca.style.display='none';
-  const titles={total:'Todos os registros',entregue:'Discos entregues por mês',pendente:'Motoristas com pendência',picos:'Ranking de picos',taxa:'Evolução da taxa de entrega',discos:'Discos entregues vs meta'};
+  const titles={total:'Todos os registros',entregue:'Discos entregues por mês','pend-agr':'Pendências Agregado — base: Discos','pend-frota':'Pendências Frota — base: Leitura VDO',picos:'Ranking de picos',taxa:'Evolução da taxa de entrega',discos:'Discos entregues vs meta'};
   let body='';
 
   if(mActiveKpi==='total'){
@@ -296,42 +319,81 @@ function renderMKpiDetail(d,stats){
     '<div class="card-title" style="margin-bottom:8px">Entregues por mês</div>'+
     meses.map((m,i)=>`<div class="bar-row"><span class="bar-lbl">${m}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(entM[i]/maxE*100)}%;background:#1D9E75"></div></div><span class="bar-num">${entM[i]}</span></div>`).join('');
   }
-  else if(mActiveKpi==='pendente'){
-    const allPend=d.filter(r=>r.statusPend&&r.statusPend!=='ENTREGUES');
-    const mPendFilter = window._mPendFilter||'all';
-    const filteredPend = mPendFilter==='q1' ? allPend.filter(r=>r.statusPend.includes('1ª'))
-                       : mPendFilter==='q2' ? allPend.filter(r=>r.statusPend.includes('2ª'))
-                       : allPend;
-
-    const q1Active = mPendFilter==='q1', q2Active = mPendFilter==='q2';
-
+  else if(mActiveKpi==='pend-agr'){
+    const rows=stats.pendAgr||[];
+    const mPendFilter=window._mPendFilter||'all';
+    const filtered=mPendFilter==='q1'?rows.filter(r=>{const m=mensalFilt.find(m=>m.placa===r.placa&&m.statusPend.includes('1ª'));return !!m;})
+                  :mPendFilter==='q2'?rows.filter(r=>{const m=mensalFilt.find(m=>m.placa===r.placa&&m.statusPend.includes('2ª'));return !!m;})
+                  :rows;
+    // mini cards de quinzena da aba mensal (como antes)
+    const pend1=mensalFilt.filter(r=>r.statusPend==='PENDÊNCIA 1ª QUIN').length;
+    const pend2=mensalFilt.filter(r=>r.statusPend==='PENDÊNCIA 2ª QUIN').length;
+    const q1Active=mPendFilter==='q1', q2Active=mPendFilter==='q2';
     body=`<div class="detail-kpis">
       <div class="detail-kpi">
-        <div class="dk-label">Total pendente</div>
-        <div class="dk-value">${stats.totalPend}</div>
-      </div>
-      <div class="detail-kpi pend-quin-card${q1Active?' pqc-active':''}" onclick="mFilterPend('q1')" style="cursor:pointer;border-color:${q1Active?'#BA7517':'var(--bd)'};background:${q1Active?'rgba(186,117,23,.1)':'var(--sf2)'};--kpi-color:#BA7517">
-        <div class="dk-label" style="color:#BA7517">1ª Quinzena</div>
-        <div class="dk-value" style="color:#BA7517">${stats.pend1}</div>
-        <div class="dk-sub" style="color:#BA7517;font-size:10px;margin-top:2px">${q1Active?'▸ clique para ver todos':'▸ clique para filtrar'}</div>
-      </div>
-      <div class="detail-kpi pend-quin-card${q2Active?' pqc-active':''}" onclick="mFilterPend('q2')" style="cursor:pointer;border-color:${q2Active?'#E24B4A':'var(--bd)'};background:${q2Active?'rgba(226,75,74,.1)':'var(--sf2)'};--kpi-color:#E24B4A">
-        <div class="dk-label" style="color:#E24B4A">2ª Quinzena</div>
-        <div class="dk-value" style="color:#E24B4A">${stats.pend2}</div>
-        <div class="dk-sub" style="color:#E24B4A;font-size:10px;margin-top:2px">${q2Active?'▸ clique para ver todos':'▸ clique para filtrar'}</div>
+        <div class="dk-label">Placas pendentes</div>
+        <div class="dk-value">${stats.pendAgrUniq||0}</div>
       </div>
       <div class="detail-kpi">
         <div class="dk-label">Motoristas</div>
-        <div class="dk-value">${[...new Set(allPend.map(r=>r.motorista))].length}</div>
+        <div class="dk-value">${stats.pendAgrMot||0}</div>
+      </div>
+      <div class="detail-kpi pend-quin-card${q1Active?' pqc-active':''}" onclick="mFilterPend('q1')" style="cursor:pointer;border-color:${q1Active?'#BA7517':'var(--bd)'};background:${q1Active?'rgba(186,117,23,.1)':'var(--sf2)'};--kpi-color:#BA7517">
+        <div class="dk-label" style="color:#BA7517">Pend. 1ª Quin (Mensal)</div>
+        <div class="dk-value" style="color:#BA7517">${pend1}</div>
+        <div class="dk-sub" style="color:#BA7517;font-size:10px;margin-top:2px">${q1Active?'▸ ver todos':'▸ filtrar'}</div>
+      </div>
+      <div class="detail-kpi pend-quin-card${q2Active?' pqc-active':''}" onclick="mFilterPend('q2')" style="cursor:pointer;border-color:${q2Active?'#E24B4A':'var(--bd)'};background:${q2Active?'rgba(226,75,74,.1)':'var(--sf2)'};--kpi-color:#E24B4A">
+        <div class="dk-label" style="color:#E24B4A">Pend. 2ª Quin (Mensal)</div>
+        <div class="dk-value" style="color:#E24B4A">${pend2}</div>
+        <div class="dk-sub" style="color:#E24B4A;font-size:10px;margin-top:2px">${q2Active?'▸ ver todos':'▸ filtrar'}</div>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div class="card-title" style="margin:0">${mPendFilter==='q1'?'Pendências 1ª Quinzena':mPendFilter==='q2'?'Pendências 2ª Quinzena':'Todas as pendências'} <span style="font-family:var(--font-mono);font-size:10px;color:var(--tx3)">(${filteredPend.length})</span></div>
+      <div class="card-title" style="margin:0">Registros na aba Discos — placas com pendência <span style="font-family:var(--font-mono);font-size:10px;color:var(--tx3)">(${filtered.length})</span></div>
       ${mPendFilter!=='all'?`<span style="font-size:11px;color:var(--acc);cursor:pointer" onclick="mFilterPend('all')">✕ limpar filtro</span>`:''}
     </div>
-    <div class="table-wrap" style="${filteredPend.length>25?'max-height:'+Math.round(25*34+34)+'px;overflow-y:auto;':''}"><table class="modal-table">
-      <thead><tr><th>Motorista</th><th>Placa</th><th>Mês</th><th>Status</th><th>Picos</th></tr></thead>
-      <tbody>${filteredPend.map(r=>`<tr><td>${r.motorista}</td><td class="vc">${r.placa}</td><td>${r.mes}</td><td><span class="badge ${r.statusPend.includes('1ª')?'ba':'br'}" style="border-color:${r.statusPend.includes('1ª')?'#BA7517':'#E24B4A'};color:${r.statusPend.includes('1ª')?'#BA7517':'#E24B4A'};background:${r.statusPend.includes('1ª')?'rgba(186,117,23,.12)':'rgba(226,75,74,.12)'}">${r.statusPend}</span></td><td class="${r.totalPicos>0?'vr':'vc'}">${r.totalPicos}</td></tr>`).join('')}</tbody>
+    <div class="table-wrap" style="${filtered.length>25?'max-height:'+Math.round(25*34+34)+'px;overflow-y:auto;':''}"><table class="modal-table">
+      <thead><tr><th>Motorista</th><th>Placa</th><th>Contrato</th><th>Mês</th><th>Quinzena</th><th>Filial</th><th>Picos</th><th>Recebimento</th></tr></thead>
+      <tbody>${filtered.map(r=>`<tr><td>${r.motorista}</td><td class="vc">${r.placa}</td><td>${r.contrato}</td><td>${r.mes}</td><td>${r.quinzena?r.quinzena+'ª':'—'}</td><td>${r.filial}</td><td class="${r.picos>0?'vr':'vc'}">${r.picos}</td><td>${r.dataReceb||'—'}</td></tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+  else if(mActiveKpi==='pend-frota'){
+    const rows=stats.pendFrota||[];
+    const mPendFilter=window._mPendFilter||'all';
+    const filtered=mPendFilter==='q1'?rows.filter(r=>{const m=mensalFilt.find(m=>m.placa===r.placa&&m.statusPend.includes('1ª'));return !!m;})
+                  :mPendFilter==='q2'?rows.filter(r=>{const m=mensalFilt.find(m=>m.placa===r.placa&&m.statusPend.includes('2ª'));return !!m;})
+                  :rows;
+    const pend1=mensalFilt.filter(r=>r.statusPend==='PENDÊNCIA 1ª QUIN').length;
+    const pend2=mensalFilt.filter(r=>r.statusPend==='PENDÊNCIA 2ª QUIN').length;
+    const q1Active=mPendFilter==='q1', q2Active=mPendFilter==='q2';
+    body=`<div class="detail-kpis">
+      <div class="detail-kpi">
+        <div class="dk-label">Placas pendentes</div>
+        <div class="dk-value">${stats.pendFrotaUniq||0}</div>
+      </div>
+      <div class="detail-kpi">
+        <div class="dk-label">Motoristas</div>
+        <div class="dk-value">${stats.pendFrotaMot||0}</div>
+      </div>
+      <div class="detail-kpi pend-quin-card${q1Active?' pqc-active':''}" onclick="mFilterPend('q1')" style="cursor:pointer;border-color:${q1Active?'#BA7517':'var(--bd)'};background:${q1Active?'rgba(186,117,23,.1)':'var(--sf2)'};--kpi-color:#BA7517">
+        <div class="dk-label" style="color:#BA7517">Pend. 1ª Quin (Mensal)</div>
+        <div class="dk-value" style="color:#BA7517">${pend1}</div>
+        <div class="dk-sub" style="color:#BA7517;font-size:10px;margin-top:2px">${q1Active?'▸ ver todos':'▸ filtrar'}</div>
+      </div>
+      <div class="detail-kpi pend-quin-card${q2Active?' pqc-active':''}" onclick="mFilterPend('q2')" style="cursor:pointer;border-color:${q2Active?'#E24B4A':'var(--bd)'};background:${q2Active?'rgba(226,75,74,.1)':'var(--sf2)'};--kpi-color:#E24B4A">
+        <div class="dk-label" style="color:#E24B4A">Pend. 2ª Quin (Mensal)</div>
+        <div class="dk-value" style="color:#E24B4A">${pend2}</div>
+        <div class="dk-sub" style="color:#E24B4A;font-size:10px;margin-top:2px">${q2Active?'▸ ver todos':'▸ filtrar'}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="card-title" style="margin:0">Registros na aba Leitura VDO — placas com pendência <span style="font-family:var(--font-mono);font-size:10px;color:var(--tx3)">(${filtered.length})</span></div>
+      ${mPendFilter!=='all'?`<span style="font-size:11px;color:var(--acc);cursor:pointer" onclick="mFilterPend('all')">✕ limpar filtro</span>`:''}
+    </div>
+    <div class="table-wrap" style="${filtered.length>25?'max-height:'+Math.round(25*34+34)+'px;overflow-y:auto;':''}"><table class="modal-table">
+      <thead><tr><th>Motorista</th><th>Placa</th><th>Contrato</th><th>Mês</th><th>Quinzena</th><th>Filial</th><th>Picos</th><th>Observação</th></tr></thead>
+      <tbody>${filtered.map(r=>`<tr><td>${r.motorista}</td><td class="vc">${r.placa}</td><td>${r.contrato}</td><td>${r.mes}</td><td>${r.quinzena?r.quinzena+'ª':'—'}</td><td>${r.filial}</td><td class="${r.picos>0?'vr':'vc'}">${r.picos}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:11px">${r.obs||'—'}</td></tr>`).join('')}</tbody>
     </table></div>`;
   }
   else if(mActiveKpi==='picos'){
