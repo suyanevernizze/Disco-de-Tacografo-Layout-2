@@ -69,10 +69,11 @@
     <div class="tab-panel active" id="tab-mensal">
       <div class="slabel">Filtros</div>
       <div class="controls">
+        <div class="cg cg-date"><label>Data início</label><input type="date" id="mDateIni" onchange="applyMensal()"></div>
+        <div class="cg cg-date"><label>Data fim</label><input type="date" id="mDateFim" onchange="applyMensal()"></div>
         <div class="cg"><label>Mês</label><select id="mSelMes" onchange="applyMensal()"><option value="">Todos</option></select></div>
         <div class="cg"><label>Motorista</label><select id="mSelMot" onchange="applyMensal()"><option value="">Todos</option></select></div>
         <div class="cg"><label>Contrato</label><select id="mSelCon" onchange="applyMensal()"><option value="">Todos</option></select></div>
-        <div class="cg"><label>Filial</label><select id="mSelFil" onchange="applyMensal()"><option value="">Todas</option></select></div>
         <div class="cg"><label>Status</label>
           <select id="mSelStatus" onchange="applyMensal()">
             <option value="">Todos</option>
@@ -81,7 +82,6 @@
             <option value="PENDÊNCIA 2ª QUIN">Pendência 2ª Quin</option>
           </select></div>
         <div class="cg"><label>Placa</label><input type="text" id="mSelPlaca" placeholder="ex: ABC1234" oninput="applyMensal()"></div>
-        <div class="cg"><label>Busca</label><input type="text" id="mSearch" placeholder="motorista, placa, obs..." oninput="applyMensal()"></div>
         <button class="btn-reset" onclick="resetMensal()">↺ Limpar</button>
       </div>
 
@@ -157,10 +157,11 @@
     <div class="tab-panel" id="tab-discos">
       <div class="slabel">Filtros</div>
       <div class="controls">
+        <div class="cg cg-date"><label>Data início</label><input type="date" id="dDateIni" onchange="applyDiscos()"></div>
+        <div class="cg cg-date"><label>Data fim</label><input type="date" id="dDateFim" onchange="applyDiscos()"></div>
         <div class="cg"><label>Mês</label><select id="dSelMes" onchange="applyDiscos()"><option value="">Todos</option></select></div>
         <div class="cg"><label>Motorista</label><select id="dSelMot" onchange="applyDiscos()"><option value="">Todos</option></select></div>
         <div class="cg"><label>Contrato</label><select id="dSelCon" onchange="applyDiscos()"><option value="">Todos</option></select></div>
-        <div class="cg"><label>Filial</label><select id="dSelFil" onchange="applyDiscos()"><option value="">Todas</option></select></div>
         <div class="cg"><label>Quinzena</label>
           <select id="dSelQuin" onchange="applyDiscos()">
             <option value="">Todas</option><option value="1">1ª Quinzena</option><option value="2">2ª Quinzena</option>
@@ -171,7 +172,6 @@
             <option value="CONFORME">Conforme</option><option value="FILIAL">Entregue filial</option>
           </select></div>
         <div class="cg"><label>Placa</label><input type="text" id="dSelPlaca" placeholder="ex: ABC1234" oninput="applyDiscos()"></div>
-        <div class="cg"><label>Busca</label><input type="text" id="dSearch" placeholder="motorista, obs..." oninput="applyDiscos()"></div>
         <button class="btn-reset" onclick="resetDiscos()">↺ Limpar</button>
       </div>
 
@@ -243,10 +243,11 @@
     <div class="tab-panel" id="tab-vdo">
       <div class="slabel">Filtros</div>
       <div class="controls">
+        <div class="cg cg-date"><label>Data início</label><input type="date" id="vDateIni" onchange="applyVdo()"></div>
+        <div class="cg cg-date"><label>Data fim</label><input type="date" id="vDateFim" onchange="applyVdo()"></div>
         <div class="cg"><label>Mês</label><select id="vSelMes" onchange="applyVdo()"><option value="">Todos</option></select></div>
         <div class="cg"><label>Motorista</label><select id="vSelMot" onchange="applyVdo()"><option value="">Todos</option></select></div>
         <div class="cg"><label>Contrato</label><select id="vSelCon" onchange="applyVdo()"><option value="">Todos</option></select></div>
-        <div class="cg"><label>Filial</label><select id="vSelFil" onchange="applyVdo()"><option value="">Todas</option></select></div>
         <div class="cg"><label>Quinzena</label>
           <select id="vSelQuin" onchange="applyVdo()">
             <option value="">Todas</option><option value="1">1ª Quinzena</option><option value="2">2ª Quinzena</option>
@@ -256,7 +257,6 @@
             <option value="">Todos</option><option value="sim">Com picos (> 0)</option><option value="nao">Sem picos (= 0)</option>
           </select></div>
         <div class="cg"><label>Placa</label><input type="text" id="vSelPlaca" placeholder="ex: ABC1234" oninput="applyVdo()"></div>
-        <div class="cg"><label>Busca</label><input type="text" id="vSearch" placeholder="motorista, obs..." oninput="applyVdo()"></div>
         <button class="btn-reset" onclick="resetVdo()">↺ Limpar</button>
       </div>
 
