@@ -106,7 +106,7 @@ function processFile(file){
       badge.textContent='✅ '+file.name+' — '+mensalAll.length+' mensal / '+discosAll.length+' discos / '+vdoAll.length+' VDO';
       g('dropZone').classList.add('hidden');
       g('dashboard').classList.add('visible');
-      g('hdrTabs').classList.add('visible');
+      const hdrTabs=g('hdrTabs'); if(hdrTabs)hdrTabs.classList.add('visible');
       populateFilters();
       applyMensal(); applyDiscos(); applyVdo();
     }catch(err){badge.textContent='❌ '+err.message;alert('Erro: '+err.message);}
