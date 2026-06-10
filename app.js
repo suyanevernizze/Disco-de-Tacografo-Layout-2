@@ -319,6 +319,7 @@ window.mFilterPend=function(quin){
 window.mClickKpi=function(id){
   window._mPendFilter='all';
   if(id!=='discos') window._discFilter='all';
+  if(id!=='taxa') window._taxFilter='all';
   mActiveKpi = mActiveKpi===id ? null : id;
   const chartsArea=g('mChartsArea');
   if(mActiveKpi){chartsArea.style.display='none';}else{chartsArea.style.display='block';}
@@ -326,6 +327,7 @@ window.mClickKpi=function(id){
 };
 
 function renderMKpiDetail(d,stats){
+  window.renderMKpiDetail=renderMKpiDetail;
   const dp=g('mKpiDetail');
   if(!mActiveKpi){dp.innerHTML='';return;}
   window._mLastStats=stats; window._mLastD=d;
@@ -449,9 +451,17 @@ function renderMKpiDetail(d,stats){
     top.map(([nome,val])=>`<div class="bar-row"><span class="bar-lbl">${nome}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/maxV*100)}%;background:#E24B4A;opacity:${0.5+val/maxV*.5}"></div></div><span class="bar-num" style="color:var(--red)">${val.toLocaleString('pt-BR')}</span></div>`).join('');
   }
   else if(mActiveKpi==='taxa'){
+    const taxFilter=window._taxFilter||'all';
+    const tFilt=taxFilter==='agr'?d.filter(r=>r.contrato!=='FROTA'):taxFilter==='frota'?d.filter(r=>r.contrato==='FROTA'):d;
     const meses=[...new Set(d.sort((a,b)=>a.mesOrd-b.mesOrd).map(r=>r.mes))];
-    const taxM=meses.map(m=>{const md=d.filter(r=>r.mes===m);const tot=md.length;return tot?Math.round(md.filter(r=>r.statusPend==='ENTREGUES').length/tot*100):0;});
-    body=miniKpis([{l:'Taxa atual',v:(taxM[taxM.length-1]||0)+'%'},{l:'Melhor mês',v:Math.max(...taxM)+'%'},{l:'Pior mês',v:Math.min(...taxM)+'%'},{l:'Média geral',v:Math.round(taxM.reduce((a,b)=>a+b,0)/(taxM.length||1))+'%'}])+
+    const taxM=meses.map(m=>{const md=tFilt.filter(r=>r.mes===m);const tot=md.length;return tot?Math.round(md.filter(r=>r.statusPend==='ENTREGUES').length/tot*100):0;});
+    const btnStyle=(active,color)=>`cursor:pointer;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${active?color:'var(--bd)'};background:${active?`color-mix(in srgb,${color} 15%,transparent)`:'transparent'};color:${active?color:'var(--tx2)'};transition:all .2s`;
+    body=`<div style="display:flex;gap:8px;margin-bottom:12px">
+      <button style="${btnStyle(taxFilter==='all','#378ADD')}" onclick="window._taxFilter='all';renderMKpiDetail(window._mLastD,window._mLastStats)">Todos</button>
+      <button style="${btnStyle(taxFilter==='agr','#1D9E75')}" onclick="window._taxFilter='agr';renderMKpiDetail(window._mLastD,window._mLastStats)">Agregado</button>
+      <button style="${btnStyle(taxFilter==='frota','#D4537E')}" onclick="window._taxFilter='frota';renderMKpiDetail(window._mLastD,window._mLastStats)">Frota</button>
+    </div>`+
+    miniKpis([{l:'Taxa atual',v:(taxM[taxM.length-1]||0)+'%'},{l:'Melhor mês',v:Math.max(...taxM)+'%'},{l:'Pior mês',v:Math.min(...taxM)+'%'},{l:'Média geral',v:Math.round(taxM.reduce((a,b)=>a+b,0)/(taxM.length||1))+'%'}])+
     '<div class="card-title" style="margin-bottom:8px">Taxa por mês</div>'+
     meses.map((m,i)=>`<div class="bar-row"><span class="bar-lbl">${m}</span><div class="bar-track"><div class="bar-fill" style="width:${taxM[i]}%;background:${taxM[i]>=90?'#1D9E75':taxM[i]>=70?'#BA7517':'#E24B4A'}"></div></div><span class="bar-num" style="color:${taxM[i]>=90?'var(--grn)':taxM[i]>=70?'var(--amb)':'var(--red)'}">${taxM[i]}%</span></div>`).join('');
   }
@@ -469,9 +479,9 @@ function renderMKpiDetail(d,stats){
     const deficit=somaEntF-somaMetaF;
     const btnStyle=(active,color)=>`cursor:pointer;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid ${active?color:'var(--bd)'};background:${active?`color-mix(in srgb,${color} 15%,transparent)`:'transparent'};color:${active?color:'var(--tx2)'};transition:all .2s`;
     body=`<div style="display:flex;gap:8px;margin-bottom:12px">
-      <button style="${btnStyle(discFilter==='all','#6C63FF')}" onclick="window._discFilter='all';renderMKpiDetail(mensalFilt,window._mLastStats)">Todos</button>
-      <button style="${btnStyle(discFilter==='agr','#1D9E75')}" onclick="window._discFilter='agr';renderMKpiDetail(mensalFilt,window._mLastStats)">Agregado</button>
-      <button style="${btnStyle(discFilter==='frota','#378ADD')}" onclick="window._discFilter='frota';renderMKpiDetail(mensalFilt,window._mLastStats)">Frota</button>
+      <button style="${btnStyle(discFilter==='all','#6C63FF')}" onclick="window._discFilter='all';renderMKpiDetail(window._mLastD,window._mLastStats)">Todos</button>
+      <button style="${btnStyle(discFilter==='agr','#1D9E75')}" onclick="window._discFilter='agr';renderMKpiDetail(window._mLastD,window._mLastStats)">Agregado</button>
+      <button style="${btnStyle(discFilter==='frota','#378ADD')}" onclick="window._discFilter='frota';renderMKpiDetail(window._mLastD,window._mLastStats)">Frota</button>
     </div>`+
     miniKpis([{l:'Total entregues',v:somaEntF.toLocaleString('pt-BR')},{l:'Meta total',v:somaMetaF.toLocaleString('pt-BR')},{l:'Déficit',v:deficit>=0?'+'+deficit:String(deficit)},{l:'Média/placa',v:(somaEntF/([...new Set(dFilt.map(r=>r.placa))].length||1)).toFixed(1)}])+
     '<div class="card-title" style="margin-bottom:8px">Entregues vs meta por mês</div>'+
